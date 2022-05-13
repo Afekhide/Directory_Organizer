@@ -13,8 +13,7 @@ eventHandler = DirectoryWatcher(watch_dir=watch_dir)
 
 if __name__ == '__main__':
 
-    curr_dir = os.path.abspath(__file__).split('.py')[0]
-    print(curr_dir)
+    # os.chdir(os.path.split(os.path.abspath(__file__)))
     if sys.platform == 'linux':
         command = f'pip3 install -r requirements.txt'
     elif sys.platform == 'win32':
@@ -26,5 +25,3 @@ if __name__ == '__main__':
     print(f'watching {watch_dir}....')
     DirectoryWatcher.start(eventHandler)
 
-    # print(__file__)
-    # res = subprocess.run()

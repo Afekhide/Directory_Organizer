@@ -1,5 +1,6 @@
 import os
 import time
+import datetime
 import threading
 from constants import *
 from watchdog.observers import Observer
@@ -13,6 +14,7 @@ class DirectoryWatcher(FileSystemEventHandler):
         self.watch_dir = os.path.abspath(watch_dir)
         self.observer = Observer()
         self.file_folder_maps = {}
+        self.log_file = open(f'{os.path.join(os.path.split(os.path.abspath(__file__))[0], "logfile.txt")}', 'a')
 
         # if the specified directory to watch doe not exists already, then create it
         if not os.path.exists(watch_dir):
@@ -37,13 +39,6 @@ class DirectoryWatcher(FileSystemEventHandler):
         # initially we assume the created file does not map to any of the known file extensions
         matched = False
 
-        """
-        Here we loop through the file types defined in FILE_TYPE_MAP, 
-        if the file extension matches any of the filet ypes it gets grouped under a file category
-        Example all 
-            '*.mp3', '*.ogg', '*.wav' maps to AUDIOS
-            '*.png', '*.jpg', '*.bmp' maps to IMAGES
-        """
         for file_category, file_extensions in FILE_TYPE_MAP.items():
             if file_ext in file_extensions:
                 matched = True
@@ -64,19 +59,22 @@ class DirectoryWatcher(FileSystemEventHandler):
 
         # if the file already exists in the target folder, don't attempt to move...
         if os.path.exists(new_file_name):
+            audio_thread(f'duplicate already in the {FOLDER_TYPE_MAP.get(file_category)} folder')
             return None
             # if the text to speech module is not installed, don't use the speech function
         try:
             import pyttsx3
-            audio_thread(f'duplicate already in the {FOLDER_TYPE_MAP.get(file_category)} folder')
+
         except ModuleNotFoundError:
             print('pyttsx3 not installed, try running \'pip install pyttsx3\'')
 
+        self.log_file.write(f'Action: {event.event_type}\t\tPath: {event.src_path} \t\tDest Folder: {folder_to_place}')
+        self.log_file.close()
         os.rename(event.src_path, new_file_name)
         os.listdir(folder_to_place)
         os.listdir(self.watch_dir)
         message = f'file moved to the {FOLDER_TYPE_MAP.get(file_category)} folder'
-        # audio_thread(message)
+        audio_thread(message)
 
     @classmethod
     def start(cls, handler):
@@ -89,6 +87,3 @@ class DirectoryWatcher(FileSystemEventHandler):
             handler.observer.stop()
 
         handler.observer.join()
-
-
-

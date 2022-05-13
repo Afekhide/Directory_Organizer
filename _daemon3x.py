@@ -2,7 +2,6 @@
 
 import sys, os, time, atexit, signal
 
-
 class daemon:
     """A generic daemon class.
 
